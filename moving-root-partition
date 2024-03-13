@@ -1,0 +1,29 @@
+parted /dev/sda
+Partition type: primary
+File System Type: Ext4
+Start: проверяем start командой parted /dev/sda print, конец последней партиции – start 
+End 100% 
+
+1. Далее монтируем новую партицию и копируем в нее содержимое:
+2. dd if=/dev/<old root disk> of=/dev/<new root disk> bs=64k conv=noerror,sync
+
+3. Потом меняем UUID /dev/sda3 на новый командой
+uuidgen – генерируем новый uuid, копируем его
+e2fsck – проверяем файловую систему
+tune2fs -U <UUID> /dev/sda3 - меняем UUID диска (ДИСК ДОЛЖЕН БЫТЬ ОТМОНТИРОВАН, если его примонтировали на каком-то из шагов)
+
+4. mount /dev/sda3 /mnt
+
+5. Заменяем старый UUID на новый в vim /etc/fstab (В /mnt !!!)
+
+6. For i in /proc/ /sys/ /dev/ /run /boot/; do mount –bind $i /mnt/$i; done – монтируем данные директории, чтобы они были доступны в одновременно и в /mnt
+
+7. сhroot /mnt – меняем рут директорию на /mnt
+
+8. grub—mkconfig -o /boot/grub/grub.cfg
+
+9. update-initramfs -u
+
+10. Reboot. Валидируем, что / теперь в /dev/sda3 (lsblk)
+
+11. Cделать resize2fs, чтобы файловая система увидела новый размер
